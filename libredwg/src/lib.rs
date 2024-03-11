@@ -1,4 +1,4 @@
-use std::ffi::{c_char, CStr};
+use std::ffi::{c_char, CString};
 use std::mem::zeroed;
 use std::ops::{Deref, DerefMut};
 use std::path::Path;
@@ -6,7 +6,7 @@ use std::path::Path;
 pub use libredwg_sys::*;
 
 pub fn get_name(name: *const c_char) -> String {
-    unsafe { CStr::from_ptr(name).to_string_lossy().to_string() }
+    unsafe { CString::from_raw(name as *mut c_char).to_string_lossy().to_string() }
 }
 
 pub struct DwgData {
