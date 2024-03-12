@@ -1,7 +1,7 @@
 use std::ffi::{c_char, CString};
 use std::mem::zeroed;
 use std::ops::{Deref, DerefMut};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub use libredwg_sys::*;
 
@@ -11,21 +11,22 @@ pub fn get_name(name: *const c_char) -> String {
 
 pub struct DwgData {
     inner: Dwg_Data,
+    cache: PathBuf,
 }
 
 impl DwgData {
     pub fn from_dwg(path: impl AsRef<Path>) -> Self {
         let mut inner = unsafe { zeroed() };
-        let path = process_file(path.as_ref());
+        let (cache, path) = process_file(path.as_ref());
         unsafe { dwg_read_file(path.as_ptr(), &mut inner) };
-        Self { inner }
+        Self { inner, cache }
     }
 
     pub fn from_dxf(path: impl AsRef<Path>) -> Self {
         let mut inner = unsafe { zeroed() };
-        let path = process_file(path.as_ref());
+        let (cache, path) = process_file(path.as_ref());
         unsafe { dxf_read_file(path.as_ptr(), &mut inner) };
-        Self { inner }
+        Self { inner, cache }
     }
 
     pub fn objects(&self) -> impl Iterator<Item=Dwg_Object> {
@@ -54,6 +55,7 @@ impl DerefMut for DwgData {
 impl Drop for DwgData {
     fn drop(&mut self) {
         unsafe { dwg_free(&mut self.inner); }
+        std::fs::remove_dir_all(&self.cache).ok();
     }
 }
 
