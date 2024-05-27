@@ -8,3 +8,6 @@ build = "build.rs"
 
 [dependencies]
 nanoid = "0.4"
+
+[build-dependencies]
+target-triple = "0.1"
